@@ -3,6 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Category;
+use App\Models\ProductImage;
+use App\Models\Variant;
+use App\Models\AttributeOption;
 
 class Product extends Model
 {
