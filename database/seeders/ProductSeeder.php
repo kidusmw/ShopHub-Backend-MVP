@@ -14,11 +14,13 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         Product::create([
-            'name' => 'T-Shirt',
+            'title' => 'T-Shirt', // use title, not name
             'description' => 'High quality cotton t-shirt',
-            'vendor_id' => 1,
+            'user_id' => 1,       // vendor_id is user_id here
             'category_id' => 1,
-            'price' => 20.00
+            'price' => 20.00,
+            'discount_price' => null,
+            'status' => 'available',
         ]);
     }
 }
