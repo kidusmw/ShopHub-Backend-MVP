@@ -47,6 +47,10 @@ class ProductController extends Controller
             // attribute option ids for each variant
             'variants.*.attribute_option_ids' => 'required|array',
             'variants.*.attribute_option_ids.*' => 'exists:attribute_options,id',
+
+            // Add validation for images here
+            'images' => 'sometimes|array',
+            'images.*' => 'image|max:2048', // max 2MB per image
         ]);
 
         // Create the product
@@ -60,7 +64,14 @@ class ProductController extends Controller
             'status' => $data['status'],
         ]);
 
-
+        // Handle image uploads if present
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('products', 'public'); // store in storage/app/public/products
+                // Save image record linked to product
+                $product->images()->create(['image_path' => $path]);
+            }
+        }
 
         // Create variants and link attribute options
         if (!empty($data['variants'])) {
