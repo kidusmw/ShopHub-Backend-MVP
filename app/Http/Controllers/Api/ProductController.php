@@ -146,7 +146,7 @@ class ProductController extends Controller
                 'id' => $product->vendor->id,
                 'name' => $product->vendor->name,
             ],
-            'images' => $product->images->pluck('url')->toArray(),
+            'images' => $product->images->pluck('image_path')->toArray(),
             'attributes' => collect($attributes)->map(function ($values, $name) {
                 return [
                     'name' => $name,
@@ -181,13 +181,23 @@ class ProductController extends Controller
             'discount_price' => 'nullable|numeric|min:0',
             'status' => 'sometimes|required|in:available,out_of_stock,draft',
 
+            // Add validation for images
+            'images' => 'sometimes|array',
+            'images.*' => 'image|max:2048',
+
             // For variants update, you can extend this as needed
         ]);
 
         $product->update($data);
 
-        // TODO: Implement variants update logic as needed
-
+        // Handle image uploads if present
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('products', 'public');
+                $product->images()->create(['image_path' => $path]);
+            }
+        }
+        
         return response()->json(['message' => 'Product updated']);
     }
 
@@ -196,6 +206,24 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $product = Product::with(['images', 'variants.attributeOptions'])->findOrFail($id);
+
+        // Delete product images from storage and DB
+        foreach ($product->images as $image) {
+            // Delete image file from storage disk 'public'
+            \Storage::disk('public')->delete($image->url);
+            $image->delete();
+        }
+
+        // Detach attribute options from variants, then delete variants
+        foreach ($product->variants as $variant) {
+            $variant->attributeOptions()->detach();
+            $variant->delete();
+        }
+
+        // Finally delete the product
+        $product->delete();
+
+        return response()->json(['message' => 'Product deleted successfully']);
     }
 }
