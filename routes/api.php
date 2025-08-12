@@ -33,7 +33,16 @@ Route::middleware('auth:sanctum')->group(function(){
     // vendor routes, admin routes — attach role middleware
 });
 
-// Test route to check if API is working
+/*
+ * Variant routes
+ */
+Route::put('/variants/{id}', [VariantController::class, 'update']);
+Route::delete('/variants/{id}', [VariantController::class, 'destroy']);
+
+
+/**
+ * Test route to check if API is working 
+*/
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working!']);
 }); 
