@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Product;
 
 class ProductController extends Controller
@@ -78,7 +79,6 @@ class ProductController extends Controller
 
         // Create variants and link attribute options
         if (!empty($data['variants'])) {
-            // return response()->json(['message' => 'Variants creation is not implemented yet', 'data' => $data['variants']], 501);
             foreach ($data['variants'] as $variantData) {
                 $variant = $product->variants()->create([
                     'name' => $variantData['name'],
@@ -176,7 +176,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('images')->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
             'title' => 'string|max:255',
@@ -186,35 +186,73 @@ class ProductController extends Controller
             'discount_price' => 'nullable|numeric|min:0',
             'status' => 'in:available,out_of_stock,draft',
 
-            // Add validation for images
-            'image' => 'image',
-            'images' => 'file',
-            'images.*' => 'image|max:2048',
-
             // For variants update, you can extend this as needed
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
         $data = $validator->validated();
         $product->update($data);
 
+        return response()->json(['message' => 'Product updated']);
+    }
 
+    /**
+     * Update product images.
+     */
+    public function updateImages(Request $request, $id)
+    {
+        $product = Product::with('images')->findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'image' => 'file|image|max:2048', // single image replacement
+            'images' => 'array',
+            'images.*' => 'image|max:2048',   // multiple new images
+            'delete_images' => 'array',
+            'delete_images.*' => 'exists:product_images,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $validator->validated();
+
+        // Delete specific images
+        if (!empty($data['delete_images'])) {
+            $imagesToDelete = $product->images()->whereIn('id', $data['delete_images'])->get();
+            foreach ($imagesToDelete as $img) {
+                Storage::disk('public')->delete($img->image_path);
+                $img->delete();
+            }
+        }
+
+        // Replace all existing images with a single image
+        if ($request->hasFile('image')) {
+            foreach ($product->images as $oldImage) {
+                Storage::disk('public')->delete($oldImage->image_path);
+                $oldImage->delete();
+            }
+            $image = $request->file('image');
+            $path = $image->store('products', 'public');
+            $product->images()->create(['image_path' => $path]);
+        }
+
+        // Add multiple new images
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
                 $product->images()->create(['image_path' => $path]);
             }
         }
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $path = $image->store('products', 'public');
-            $product->images()->create(['image_path' => $path]);
+        // If no images were modified, return a message
+        if (!$request->hasFile('image') && empty($data['images']) && empty($data['delete_images'])) {
+            return response()->json(['message' => 'No images updated']);
         }
 
-        return response()->json(['message' => 'Product updated']);
+        return response()->json(['message' => 'Product images updated successfully']);
     }
 
     /**
@@ -227,7 +265,7 @@ class ProductController extends Controller
         // Delete product images from storage and DB
         foreach ($product->images as $image) {
             // Delete image file from storage disk 'public'
-            \Storage::disk('public')->delete($image->image_path);
+            Storage::disk('public')->delete($image->image_path);
             $image->delete();
         }
 
