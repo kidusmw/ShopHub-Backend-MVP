@@ -227,7 +227,7 @@ class ProductController extends Controller
         // Delete product images from storage and DB
         foreach ($product->images as $image) {
             // Delete image file from storage disk 'public'
-            \Storage::disk('public')->delete($image->url);
+            \Storage::disk('public')->delete($image->image_path);
             $image->delete();
         }
 
