@@ -13,12 +13,25 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 });
 
+/**
+ * Product routes
+ * */
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products', [ProductController::class, 'store']);
 Route::post('/products/{id}', [ProductController::class, 'update']);
 Route::put('/products/{id}', [ProductController::class, 'updateImages']);
 Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+/**
+ * Category routes
+ * */
+Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('categories.show');
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::post('cart', [CartController::class,'store']);
