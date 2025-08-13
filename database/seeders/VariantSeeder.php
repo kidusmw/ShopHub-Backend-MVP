@@ -19,14 +19,18 @@ class VariantSeeder extends Seeder
             'product_id' => 1,
             'sku' => 'TSHIRT-RED-S',
             'stock' => 50,
-            'price' => 20.00
+            'price' => 20.00,
+            'status' => 'available',
+            'name' => 'Red T-Shirt - Small'
         ]);
 
         $variant2 = Variant::create([
             'product_id' => 1,
             'sku' => 'TSHIRT-BLU-M',
             'stock' => 30,
-            'price' => 22.00
+            'price' => 22.00,
+            'status' => 'available',
+            'name' => 'Blue T-Shirt - Medium'
         ]);
 
         // Link Variants to Attribute Options (pivot table)

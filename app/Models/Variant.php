@@ -13,7 +13,7 @@ class Variant extends Model
      *
      * @var array
      */
-    protected $fillable = ['product_id','sku','stock','price'];
+    protected $fillable = ['product_id','name','sku','stock','price'];
 
     /**
      * The attributes that should be cast to native types.

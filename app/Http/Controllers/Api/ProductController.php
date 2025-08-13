@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Product;
 
 class ProductController extends Controller
@@ -25,7 +26,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'user_id' => 'required|exists:users,id', // vendor
@@ -36,23 +37,25 @@ class ProductController extends Controller
 
             // variants array (optional)
             'variants' => 'array',
-            'variants.*.sku' => 'required|string|unique:variants,sku',
-            'variants.*.stock' => 'required|integer|min:0',
-            'variants.*.price' => 'required|numeric|min:0',
+            'variants.*.name' => 'string|max:255',
+            'variants.*.sku' => 'string|unique:variants,sku',
+            'variants.*.stock' => 'integer|min:0',
+            'variants.*.price' => 'numeric|min:0',
 
-            // [
-            //     {name: 'blue tshirt', price: '100', attribute_options: [{'attribute_option_id': 2}, {'attribute_option_id': 4}]},
-            //     {name: 'green tshirt', price: '100', attribute_options: [{'attribute_option_id': 2}, {'attribute_option_id': 4}]},
-            // ]
             // attribute option ids for each variant
-            'variants.*.attribute_option_ids' => 'required|array',
+            'variants.*.attribute_option_ids' => 'array',
             'variants.*.attribute_option_ids.*' => 'exists:attribute_options,id',
 
             // Add validation for images here
-            'images' => 'sometimes|array',
+            'images' => 'array',
             'images.*' => 'image|max:2048', // max 2MB per image
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $validator->validated();
         // Create the product
         $product = Product::create([
             'title' => $data['title'],
@@ -75,8 +78,10 @@ class ProductController extends Controller
 
         // Create variants and link attribute options
         if (!empty($data['variants'])) {
+            // return response()->json(['message' => 'Variants creation is not implemented yet', 'data' => $data['variants']], 501);
             foreach ($data['variants'] as $variantData) {
                 $variant = $product->variants()->create([
+                    'name' => $variantData['name'],
                     'sku' => $variantData['sku'],
                     'stock' => $variantData['stock'],
                     'price' => $variantData['price'],
@@ -173,31 +178,42 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        $data = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
+        $validator = Validator::make($request->all(), [
+            'title' => 'string|max:255',
             'description' => 'nullable|string',
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'price' => 'sometimes|required|numeric|min:0',
+            'category_id' => 'exists:categories,id',
+            'price' => 'numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
-            'status' => 'sometimes|required|in:available,out_of_stock,draft',
+            'status' => 'in:available,out_of_stock,draft',
 
             // Add validation for images
-            'images' => 'sometimes|array',
+            'image' => 'image',
+            'images' => 'file',
             'images.*' => 'image|max:2048',
 
             // For variants update, you can extend this as needed
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+        $data = $validator->validated();
         $product->update($data);
 
-        // Handle image uploads if present
+
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
                 $product->images()->create(['image_path' => $path]);
             }
         }
-        
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $path = $image->store('products', 'public');
+            $product->images()->create(['image_path' => $path]);
+        }
+
         return response()->json(['message' => 'Product updated']);
     }
 
