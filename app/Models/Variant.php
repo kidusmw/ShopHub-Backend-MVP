@@ -13,7 +13,7 @@ class Variant extends Model
      *
      * @var array
      */
-    protected $fillable = ['product_id','name','sku','stock','price'];
+    protected $fillable = ['product_id','status', 'name','sku','stock','price'];
 
     /**
      * The attributes that should be cast to native types.
@@ -29,5 +29,13 @@ class Variant extends Model
      */
     public function attributeOptions() {
         return $this->belongsToMany(AttributeOption::class, 'variant_attribute_option');
+    }
+
+    /**
+     * Get the cart items associated with the variant.
+     */
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
     }
 }
