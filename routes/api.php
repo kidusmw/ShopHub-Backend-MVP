@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\AuthController;
 
 
 /**
