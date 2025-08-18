@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\UserController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -33,6 +34,14 @@ Route::post('/categories', [CategoryController::class, 'store'])->name('categori
 Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
 Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
+/**
+ * User routes
+ * */
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::post('/users', [UserController::class, 'store']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::post('cart', [CartController::class,'store']);
@@ -41,9 +50,9 @@ Route::middleware('auth:sanctum')->group(function(){
     // vendor routes, admin routes — attach role middleware
 });
 
-/*
+/**
  * Variant routes
- */
+*/
 Route::put('/variants/{id}', [VariantController::class, 'update']);
 Route::delete('/variants/{id}', [VariantController::class, 'destroy']);
 
