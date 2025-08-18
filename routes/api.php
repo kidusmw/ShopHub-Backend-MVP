@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AuthController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -14,6 +15,12 @@ use App\Http\Controllers\Api\UserController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 });
+
+/**
+ * Auth routes
+ * */
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
 /**
  * Product routes
