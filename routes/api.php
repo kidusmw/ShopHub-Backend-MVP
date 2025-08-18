@@ -54,13 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/clear', [CartController::class, 'clear']);
 });
 
-Route::middleware('auth:sanctum')->group(function(){
-    Route::post('cart', [CartController::class,'store']);
-    Route::get('cart', [CartController::class,'index']);
-    Route::post('cart/checkout', [CartController::class,'checkout']);
-    // vendor routes, admin routes — attach role middleware
-});
-
 /**
  * Variant routes
 */

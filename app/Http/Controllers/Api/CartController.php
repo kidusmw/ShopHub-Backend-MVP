@@ -39,7 +39,8 @@ class CartController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+        // $cart = Cart::firstOrCreate(['user_id' => auth()->id()]); // With Authentication
+        $cart = Cart::firstOrCreate(['user_id' => $request->user_id]); // Without Authentication
 
         $cartItem = CartItem::updateOrCreate(
             // Create or update the cart item
