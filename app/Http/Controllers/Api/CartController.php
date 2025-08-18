@@ -56,25 +56,6 @@ class CartController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $cartItem = CartItem::with('variant.product')
-            ->where('id', $id)
-            ->whereHas('cart', function ($query) {
-                $query->where('user_id', Auth::id());
-            })
-            ->first();
-
-        if (!$cartItem) {
-            return response()->json(['message' => 'Cart item not found'], 404);
-        }
-
-        return response()->json($cartItem, 200);
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, CartItem $cartItem)

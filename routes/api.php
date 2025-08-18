@@ -43,6 +43,17 @@ Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
+/**
+ * Cart routes
+ * */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/items/{cartItem}', [CartController::class, 'update']);
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy']);
+    Route::post('/cart/clear', [CartController::class, 'clear']);
+});
+
 Route::middleware('auth:sanctum')->group(function(){
     Route::post('cart', [CartController::class,'store']);
     Route::get('cart', [CartController::class,'index']);
