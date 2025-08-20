@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-
 use App\Models\Cart;
 use App\Models\CartItem;
 
@@ -18,7 +17,7 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart  = Cart::with('items.variant.product')
+        $cart = Cart::with('items.variant.product')
             ->where('user_id', Auth::id())
             ->first();
 
@@ -39,17 +38,15 @@ class CartController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        // $cart = Cart::firstOrCreate(['user_id' => auth()->id()]); // With Authentication
-        $cart = Cart::firstOrCreate(['user_id' => $request->user_id]); // Without Authentication
+        $cart = Cart::firstOrCreate(['user_id' => auth()->id()]);
 
         $cartItem = CartItem::updateOrCreate(
-            // Create or update the cart item
             [
                 'cart_id' => $cart->id,
                 'variant_id' => $request->variant_id
             ],
             [
-                'quantity' => $request->quantity // Update quantity if item already exists
+                'quantity' => $request->quantity
             ]
         );
 
@@ -59,20 +56,19 @@ class CartController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, CartItem $cartItem)
+    public function update(Request $request, string $id)
     {
-        $validator = Validator::make($request->all(), [
-            'quantity' => 'required|integer|min:1',
-        ]);
-
+        $validator = Validator::make($request->all(), [ 'quantity' => 'required|integer|min:1', ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $cartItem->update([
-            'quantity' => $request->quantity
-        ]);
+        $cartItem = CartItem::find($id);
+        if (!$cartItem) {
+            return response()->json(['message' => 'Cart item not found'], 404);
+        }
 
+        $cartItem->update([ 'quantity' => $request->quantity ]);
         return response()->json($cartItem, 200);
     }
 
@@ -82,7 +78,6 @@ class CartController extends Controller
     public function destroy(CartItem $cartItem)
     {
         $cartItem->delete();
-
         return response()->json(['message' => 'Cart item removed successfully'], 200);
     }
 
@@ -92,13 +87,10 @@ class CartController extends Controller
     public function clear()
     {
         $cart = Cart::where('user_id', Auth::id())->first();
-
         if (!$cart) {
             return response()->json(['message' => 'Cart not found'], 404);
         }
-
         $cart->items()->delete();
-
         return response()->json(['message' => 'Cart cleared successfully'], 200);
     }
 }
