@@ -23,7 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
-    // Add other protected routes here
+    // Add other protected routes here //
 
     /**
      * User routes
@@ -60,7 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart', [CartController::class, 'store']);
     Route::put('/cart/items/{cartItem}', [CartController::class, 'update']);
     Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy']);
-    Route::post('/cart/clear', [CartController::class, 'clear']);
+    Route::delete('/cart/clear', [CartController::class, 'clear']);
 
     /**
      * Variant routes
