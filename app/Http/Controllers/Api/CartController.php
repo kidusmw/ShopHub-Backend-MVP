@@ -17,12 +17,41 @@ class CartController extends Controller
      */
     public function index()
     {
+        // Fetch the cart for the authenticated user with order status false
+        // and include related items, variants, and products.
         $cart = Cart::with('items.variant.product')
             ->where('user_id', Auth::id())
+            ->where('order_status', false)
             ->first();
 
+        // If no cart is found, return a 404 response.
+        if (!$cart) {
+            return response()->json(['message' => 'No active cart found'], 404);
+        }
+
+        // Return the cart with its items.
         return response()->json($cart, 200);
     }
+
+    /**
+     * Display cart history (Ordered carts)
+     */
+    public function cartHistory() {
+        // Fetch all carts for the authenticated user with order status true
+        $carts = Cart::with('items.variant.product')
+            ->where('user_id', Auth::id())
+            ->where('order_status', true)
+            ->get();
+
+        // If no carts are found, return a 404 response.
+        if ($carts->isEmpty()) {
+            return response()->json(['message' => 'No cart history found'], 404);
+        }
+
+        // Return the cart history with its items.
+        return response()->json($carts, 200);
+    }
+
 
     /**
      * Store a newly created resource in storage.
