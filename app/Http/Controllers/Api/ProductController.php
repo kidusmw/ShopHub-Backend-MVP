@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+
 use App\Models\Product;
 
 class ProductController extends Controller
@@ -253,6 +254,34 @@ class ProductController extends Controller
         }
 
         return response()->json(['message' => 'Product images updated successfully']);
+    }
+
+    /**
+     * Replace selective images.
+     */
+    public function replaceSingleImage(Request $request, Product $product, $imageId)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|file|image|max:2048', // new image
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Ensure the product exists and has images
+        $oldImage = $product->images()->findOrFail($imageId);
+
+        // Delete the old image file
+        Storage::disk('public')->delete($oldImage->image_path);
+
+        // Store the new image
+        $newImagePath = $request->file('image')->store('products', 'public');
+
+        // Update the database record
+        $oldImage->update(['image_path' => $newImagePath]);
+
+        return response()->json(['message' => 'Image replaced successfully', 'image' => $oldImage]);
     }
 
     /**
