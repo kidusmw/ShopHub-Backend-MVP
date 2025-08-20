@@ -2,13 +2,14 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VariantController;
-
+use App\Http\Controllers\Api\OAuthController;
 
 /**
  * Auth routes (Public Routes)
@@ -18,6 +19,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forget-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
 
+// OAuth routes
+Route::get('auth/gmail', [OAuthController::class, 'redirectToGoogle']);
+Route::get('auth/gmail/callback', [OAuthController::class, 'handleGoogleCallback']);
 
 /**
  * Auth routes (Protected Routes)
