@@ -106,7 +106,7 @@ class AuthController extends Controller
         );
 
         // Check if the status is successful
-        if ($status == Password::RESET_LINK_SET) {
+        if ($status == Password::RESET_LINK_SENT) {
             // Return a success response
             return response()->json(['message' => __($status)], 200);
         }
