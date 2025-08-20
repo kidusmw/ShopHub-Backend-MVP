@@ -12,7 +12,14 @@ class Cart extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id'];
+    protected $fillable = ['user_id', 'order_status'];
+
+    /**
+     * Cast the order_status to boolean for easier handling in the application.
+    */
+    protected $casts = [
+        'order_status' => 'boolean',
+    ];
 
     // Relationships
     public function items()

@@ -17,20 +17,32 @@ class CartController extends Controller
      */
     public function index()
     {
-        // Fetch the cart for the authenticated user with order status false
-        // and include related items, variants, and products.
         $cart = Cart::with('items.variant.product')
             ->where('user_id', Auth::id())
             ->where('order_status', false)
             ->first();
 
-        // If no cart is found, return a 404 response.
         if (!$cart) {
             return response()->json(['message' => 'No active cart found'], 404);
         }
 
-        // Return the cart with its items.
-        return response()->json($cart, 200);
+        // Add subtotal + total calculation
+        $cart->items->transform(function ($item) {
+            $item->subtotal = $item->quantity * $item->variant->price;
+            return $item;
+        });
+
+        $cart_total = $cart->items->sum('subtotal');
+
+        return response()->json([
+            'id' => $cart->id,
+            'user_id' => $cart->user_id,
+            'order_status' => $cart->order_status,
+            'created_at' => $cart->created_at,
+            'updated_at' => $cart->updated_at,
+            'items' => $cart->items,
+            'cart_total' => $cart_total
+        ], 200);
     }
 
     /**
