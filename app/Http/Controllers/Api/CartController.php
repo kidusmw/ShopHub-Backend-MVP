@@ -122,4 +122,30 @@ class CartController extends Controller
         $cart->items()->delete();
         return response()->json(['message' => 'Cart cleared successfully'], 200);
     }
+
+    /**
+     * Checkout the cart for the authenticated user.
+     */
+    public function checkout($cartId)
+    {
+        // Fetch the cart for the authenticated user with order status false and cartID
+        $cart = Cart::where('id', $cartId)
+            ->where('user_id', Auth::id())
+            ->where('order_status', false)
+            ->first();
+
+        if (!$cart) {
+            return response()->json(['message' => 'Active cart not found'], 404);
+        }
+
+        // Proceed with the checkout process (e.g., payment processing)
+        // ...
+        // Update the cart status to ordered
+        $cart->update(['order_status' => true]);
+
+        return response()->json([
+            'message' => 'Checkout successful',
+            'cart' => $cart
+        ], 200);
+    }
 }
