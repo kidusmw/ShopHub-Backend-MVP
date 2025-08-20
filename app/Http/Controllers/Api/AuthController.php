@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Password;
 
 use App\Models\User;
 
@@ -84,5 +85,69 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logged out successfully'
         ], 200);
+    }
+
+    /**
+     * Send reset password link
+     */
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Use Laravel's built-in password broker to send the reset link
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        // Check if the status is successful
+        if ($status == Password::RESET_LINK_SENT) {
+            // Return a success response
+            return response()->json(['message' => __($status)], 200);
+        }
+
+        // If there was an error, return an error response
+        return response()->json(['message' => __($status)], 200);
+    }
+
+    /**
+     * Reset the user's password
+     */
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'token' => 'required|string',
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Use Laravel's built-in password broker to reset the password
+        $status = Password::reset(
+            // Get the request data
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            // Closure to update the user's password
+            function (User $user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->save();
+            }
+        );
+
+        // Check if the status is successful
+        if ($status == Password::PASSWORD_RESET) {
+            return response()->json(['message' => __($status)], 200);
+        }
+
+        // If there was an error, return an error response
+        return response()->json(['message' => __($status)], 400);
     }
 }
