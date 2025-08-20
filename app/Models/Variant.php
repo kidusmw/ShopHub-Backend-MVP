@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\AttributeOption;
+
 use App\Models\Product;
 
 class Variant extends Model

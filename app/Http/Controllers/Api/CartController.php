@@ -19,10 +19,51 @@ class CartController extends Controller
     {
         $cart = Cart::with('items.variant.product')
             ->where('user_id', Auth::id())
+            ->where('order_status', false)
             ->first();
 
-        return response()->json($cart, 200);
+        if (!$cart) {
+            return response()->json(['message' => 'No active cart found'], 404);
+        }
+
+        // Add subtotal + total calculation
+        $cart->items->transform(function ($item) {
+            $item->subtotal = $item->quantity * $item->variant->price;
+            return $item;
+        });
+
+        $cart_total = $cart->items->sum('subtotal');
+
+        return response()->json([
+            'id' => $cart->id,
+            'user_id' => $cart->user_id,
+            'order_status' => $cart->order_status,
+            'created_at' => $cart->created_at,
+            'updated_at' => $cart->updated_at,
+            'items' => $cart->items,
+            'cart_total' => $cart_total
+        ], 200);
     }
+
+    /**
+     * Display cart history (Ordered carts)
+     */
+    public function cartHistory() {
+        // Fetch all carts for the authenticated user with order status true
+        $carts = Cart::with('items.variant.product')
+            ->where('user_id', Auth::id())
+            ->where('order_status', true)
+            ->get();
+
+        // If no carts are found, return a 404 response.
+        if ($carts->isEmpty()) {
+            return response()->json(['message' => 'No cart history found'], 404);
+        }
+
+        // Return the cart history with its items.
+        return response()->json($carts, 200);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -92,5 +133,31 @@ class CartController extends Controller
         }
         $cart->items()->delete();
         return response()->json(['message' => 'Cart cleared successfully'], 200);
+    }
+
+    /**
+     * Checkout the cart for the authenticated user.
+     */
+    public function checkout($cartId)
+    {
+        // Fetch the cart for the authenticated user with order status false and cartID
+        $cart = Cart::where('id', $cartId)
+            ->where('user_id', Auth::id())
+            ->where('order_status', false)
+            ->first();
+
+        if (!$cart) {
+            return response()->json(['message' => 'Active cart not found'], 404);
+        }
+
+        // Proceed with the checkout process (e.g., payment processing)
+        // ...
+        // Update the cart status to ordered
+        $cart->update(['order_status' => true]);
+
+        return response()->json([
+            'message' => 'Checkout successful',
+            'cart' => $cart
+        ], 200);
     }
 }
