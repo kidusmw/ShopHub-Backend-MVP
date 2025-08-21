@@ -1,20 +1,26 @@
+<?php
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use function Pest\Laravel\post;
 use function Pest\Laravel\actingAs;
 
-beforeEach(function () {
-    // This runs before each test
-});
+// Use the RefreshDatabase trait for all tests in this file
+uses(RefreshDatabase::class);
+
+// beforeEach(function () {
+//     // This runs before each test
+// });
 
 /**
 * @test for register functionality
 */
 it('can register a new user', function () {
     $data = [
-        'name' => 'John Doe',
-        'email' => 'john@example.com',
+        'name' => 'test',
+        'email' => 'test@example.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ];
@@ -29,19 +35,22 @@ it('can register a new user', function () {
                  'token_type',
              ]);
 
-    // Check the password is hashed
-    expect(User::first()->password)->not->toBe('password123');
+    // Check if the user was created in the database
+    $user = User::first();
+    expect($user->name)->toBe('test')
+        ->and($user->email)->toBe('test@example.com')
+        ->and(Hash::check('password123', $user->password))->toBeTrue();
 });
 
 /**
 * @test for registration with duplicate fields
 */
 it('cannot register with duplicate email', function () {
-    User::factory()->create(['email' => 'john@example.com']);
+    User::factory()->create(['email' => 'test@example.com']);
 
     $data = [
-        'name' => 'Jane Doe',
-        'email' => 'john@example.com',
+        'name' => 'test2',
+        'email' => 'test@example.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ];
@@ -88,7 +97,7 @@ it('cannot login with invalid credentials', function () {
     ]);
 
     $response->assertStatus(401)
-             ->assertJson(['message' => 'Unauthorized']);
+             ->assertJson(['message' => 'Invalid credentials']);
 });
 
 /**
@@ -96,9 +105,10 @@ it('cannot login with invalid credentials', function () {
 */
 it('can logout a user', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test-token')->plainTextToken;
 
-    $response = actingAs($user)->post('/api/logout');
-
+    $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/logout');
     $response->assertStatus(200)
              ->assertJson(['message' => 'Logged out successfully']);
 });
@@ -109,10 +119,17 @@ it('can logout a user', function () {
 it('can request a password reset link', function () {
     $user = User::factory()->create();
 
+    // Mock the Password facade to avoid sending real emails
+    Password::shouldReceive('sendResetLink')
+        ->once()
+        ->with(['email' => $user->email])
+        ->andReturn(Password::RESET_LINK_SENT);
+
     $response = post('/api/forgot-password', [
         'email' => $user->email,
     ]);
 
     $response->assertStatus(200)
-             ->assertJsonStructure(['message']);
+             ->assertJson(['message' => __(Password::RESET_LINK_SENT)]);
 });
+
