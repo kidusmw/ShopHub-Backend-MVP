@@ -69,9 +69,15 @@ class ProductController extends Controller
             'status' => $data['status'],
         ]);
 
+        // Handle single image upload if present
+        $images = [
+            $request->file('image'),
+            $request->file('image2')
+        ];
+
         // Handle image uploads if present
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
+        if ($images) {
+            foreach ($images as $image) {
                 $path = $image->store('products', 'public'); // store in storage/app/public/products
                 // Save image record linked to product
                 $product->images()->create(['image_path' => $path]);
@@ -259,29 +265,22 @@ class ProductController extends Controller
     /**
      * Replace selective images.
      */
-    public function replaceSingleImage(Request $request, Product $product, $imageId)
+    public function deleteSingleImage(Request $request, Product $product, $imageId)
     {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|file|image|max:2048', // new image
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
         // Ensure the product exists and has images
-        $oldImage = $product->images()->findOrFail($imageId);
+        $oldImage = $product->images()->find($imageId);
+
+        if (!$oldImage) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
 
         // Delete the old image file
         Storage::disk('public')->delete($oldImage->image_path);
 
-        // Store the new image
-        $newImagePath = $request->file('image')->store('products', 'public');
+        // Delete the database record
+        $oldImage->delete();
 
-        // Update the database record
-        $oldImage->update(['image_path' => $newImagePath]);
-
-        return response()->json(['message' => 'Image replaced successfully', 'image' => $oldImage]);
+        return response()->json(['message' => 'Image deleted successfully']);
     }
 
     /**
