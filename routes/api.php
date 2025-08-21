@@ -49,8 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products', [ProductController::class, 'store']);
     Route::post('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-    Route::post('/products/image/{id}', [ProductController::class, 'updateImages']);
-    Route::post('/products/{product}/images/{image}/replace', [ProductController::class, 'replaceSingleImage']);
+    Route::delete('/products/{product}/images/{image}/delete', [ProductController::class, 'deleteSingleImage']);
 
     /**
      * Category routes
