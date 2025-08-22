@@ -10,9 +10,9 @@ use function Pest\Laravel\actingAs;
 // Use the RefreshDatabase trait for all tests in this file
 uses(RefreshDatabase::class);
 
-// beforeEach(function () {
-//     // This runs before each test
-// });
+beforeEach(function () {
+    // This runs before each test
+});
 
 /**
 * @test for register functionality
