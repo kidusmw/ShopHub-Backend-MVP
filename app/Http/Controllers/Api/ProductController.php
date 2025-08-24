@@ -49,7 +49,7 @@ class ProductController extends Controller
             'variants.*.attribute_option_ids.*' => 'exists:attribute_options,id',
 
             // Add validation for images here
-            'images' => 'array',
+            'images' => 'array|nullable',
             'images.*' => 'image|max:2048', // max 2MB per image
         ]);
 
@@ -70,10 +70,11 @@ class ProductController extends Controller
         ]);
 
         // Handle single image upload if present
-        $images = [
-            $request->file('image'),
-            $request->file('image2')
-        ];
+        // $images = [
+        //     $request->file('image'),
+        //     $request->file('image2')
+        // ];
+        $images = $request->file('images', []);
 
         // Handle image uploads if present
         if ($images) {
