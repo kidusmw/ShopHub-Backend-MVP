@@ -3,12 +3,12 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use function Pest\Laravel\post;
 use function Pest\Laravel\actingAs;
 
-// Use the RefreshDatabase trait for all tests in this file
-uses(RefreshDatabase::class);
+// Use the DatabaseTransactions trait for all tests in this file
+uses(DatabaseTransactions::class);
 
 beforeEach(function () {
     // This runs before each test
