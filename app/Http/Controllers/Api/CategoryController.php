@@ -35,7 +35,10 @@ class CategoryController extends Controller
 
         // If validation fails, return errors
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         // Create the category
@@ -76,7 +79,10 @@ class CategoryController extends Controller
 
         // If validation fails, return errors
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         // Update the category
