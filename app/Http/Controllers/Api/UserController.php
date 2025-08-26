@@ -26,14 +26,14 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|min:2|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'in:user,admin,vendor'
+            'role' => 'required|in:user,admin,vendor',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(["errors" => $validator->errors()], 422);
         }
 
         $user = User::create([
@@ -66,21 +66,20 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255',
-            'email' => 'string|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6',
-            'role' => 'in:user,admin,vendor',
+            'name' => 'required|string|min:2|max:255',
+            'email' => 'required|string|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8', // match create
+            'role' => 'required|in:user,admin,vendor',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(["errors" => $validator->errors()], 422);
         }
 
         $data = $request->only(['name', 'email', 'role']);
 
-        if($request->filled('password')) {
+        if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
-
         }
 
         $user->update($data);
